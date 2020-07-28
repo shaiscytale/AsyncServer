@@ -1,0 +1,7 @@
+AsyncServer/Bin/
+AsyncServer/obj/
+
+*.sln
+*.csproj
+
+*.nupkg
