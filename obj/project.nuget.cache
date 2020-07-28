@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "tTVWTABiWmItIORLspqPMKZeyUl/npiDL5F1rauqkP/VBlnJRcCCIXc+4hYlM757Z2p6+x9fu+cg7qJbruqvAQ==",
+  "success": true,
+  "projectFilePath": "Z:\\Prog\\C#\\AsyncServer\\AsyncServer\\AsyncServer\\AsyncServer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Abscience\\.nuget\\packages\\json.net\\1.0.23\\json.net.1.0.23.nupkg.sha512",
+    "C:\\Users\\Abscience\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
