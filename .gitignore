@@ -1,6 +1,10 @@
 AsyncServer/Bin/
 AsyncServer/obj/
 
+*.vs/
+
+.vs/
+
 *.sln
 *.csproj
 

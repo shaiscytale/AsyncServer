@@ -1,4 +1,5 @@
 ﻿using AsyncServer.Models;
+using AsyncServer.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -112,14 +113,7 @@ namespace AsyncServer
             Console.WriteLine( "Received Text: " + text );
             if( text.Substring( 0, 1 ) == "$" ) // potential request
             {
-                if( text.ToLower() == "$gettime" ) // Client requested time
-                {
-                    Console.WriteLine( "Text is a get time request" );
-                    byte[] data = Encoding.ASCII.GetBytes(DateTime.Now.ToLongTimeString());
-                    current.Send( data );
-                    Console.WriteLine( "Time sent to client" );
-                }
-                else if( text.ToLower() == "$exit" ) // Client wants to exit gracefully
+                if( text.ToLower() == Commands.EXIT ) // Client wants to exit gracefully
                 {
                     currUser.Socket.Shutdown( SocketShutdown.Both );
                     currUser.Socket.Close();
@@ -127,7 +121,7 @@ namespace AsyncServer
                     Console.WriteLine( "Client disconnected" );
                     return;
                 }
-                else if( text.ToLower().StartsWith("$nick " ) )
+                else if( text.ToLower() == Commands.NICKNAME )
                 {
                     string nick = text.ToLower().Substring( 6 );
                     currUser.SetNickName( nick );
@@ -135,15 +129,27 @@ namespace AsyncServer
                     byte[] data = Encoding.ASCII.GetBytes(String.Format("new nickname set => {0}", currUser.Nickname ));
                     currUser.Socket.Send( data );
                 }
-                else if( text.ToLower() == "$user" )
+                else if( text.ToLower() == Commands.USER )
                 {
                     string res = String.Format("--JSON{0}", JsonConvert.SerializeObject(currUser.Nickname));
                     byte[] data = Encoding.ASCII.GetBytes(res);
                     currUser.Socket.Send( data );
                 }
-                else if( text.ToLower() == "$rdm" )
+                else if( text.ToLower() == Commands.RANDOM )
                 {
                     Operations.Async.TestApi( currUser.Socket );
+                }
+                else if( text.ToLower() == Commands.HELP_COMMAND )
+                {
+                    Operations.ToClient.CommandList( currUser.Socket );
+                }
+                else if( text.ToLower().StartsWith(Commands.HELP_COMMAND+" -") )
+                {
+                    var len = (Commands.HELP_COMMAND+" -").Length;
+
+                    var caller = text.Substring(len);
+
+                    Operations.ToClient.CommandHelp( currUser.Socket, caller );
                 }
                 else
                 {

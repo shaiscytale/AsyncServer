@@ -12,11 +12,11 @@ namespace AsyncServer.Operations
     {
 
         private static readonly HttpClient _client = new HttpClient();
-        internal static void TestApi( Socket destinataire )
+        internal static void TestApi( Socket target )
         {
             var apicall = ApiCallTest().Result;
             byte[] data = Encoding.ASCII.GetBytes(apicall);
-            destinataire.Send( data );
+            target.Send( data );
         }
 
 
