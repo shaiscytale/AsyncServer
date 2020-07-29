@@ -1,5 +1,6 @@
 ﻿using AsyncServer.Models;
 using AsyncServer.Utils;
+using Datalink.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -109,67 +110,89 @@ namespace AsyncServer
 
             byte[] recBuf = new byte[received];
             Array.Copy( buffer, recBuf, received );
-            string text = Encoding.ASCII.GetString(recBuf);
-            Console.WriteLine( "Received Text: " + text );
-            if( text.Substring( 0, 1 ) == "$" ) // potential request
+
+            // try to deserialize the received buffer into a Bag
+            Bag _bag;
+            try
             {
-                if( text.ToLower() == Commands.EXIT ) // Client wants to exit gracefully
-                {
-                    currUser.Socket.Shutdown( SocketShutdown.Both );
-                    currUser.Socket.Close();
-                    users.Remove( currUser );
-                    Console.WriteLine( "Client disconnected" );
-                    return;
-                }
-                else if( text.ToLower() == Commands.NICKNAME )
-                {
-                    string nick = text.ToLower().Substring( 6 );
-                    currUser.SetNickName( nick );
-                    Console.WriteLine( String.Format("new nickname set => {0}", currUser.Nickname ) );
-                    byte[] data = Encoding.ASCII.GetBytes(String.Format("new nickname set => {0}", currUser.Nickname ));
-                    currUser.Socket.Send( data );
-                }
-                else if( text.ToLower() == Commands.USER )
-                {
-                    string res = String.Format("--JSON{0}", JsonConvert.SerializeObject(currUser.Nickname));
-                    byte[] data = Encoding.ASCII.GetBytes(res);
-                    currUser.Socket.Send( data );
-                }
-                else if( text.ToLower() == Commands.RANDOM )
-                {
-                    Operations.Async.TestApi( currUser.Socket );
-                }
-                else if( text.ToLower() == Commands.HELP_COMMAND )
-                {
-                    Operations.ToClient.CommandList( currUser.Socket );
-                }
-                else if( text.ToLower().StartsWith(Commands.HELP_COMMAND+" -") )
-                {
-                    var len = (Commands.HELP_COMMAND+" -").Length;
+                _bag = new Bag( recBuf );
+            }
+            catch( Exception )
+            {
+                Console.WriteLine("error during bag-deserialization");
+                return;
+            }
 
-                    var caller = text.Substring(len);
+            if(_bag != null )
+            {
 
-                    Operations.ToClient.CommandHelp( currUser.Socket, caller );
-                }
-                else
+            }
+            else
+            {
+                string text = Encoding.ASCII.GetString(recBuf);
+                Console.WriteLine( "Received Text: " + text );
+                if( text.Substring( 0, 1 ) == "$" ) // potential request
                 {
-                    Console.WriteLine( "Text is an invalid request" );
-                    byte[] data = Encoding.ASCII.GetBytes("Invalid request");
-                    currUser.Socket.Send( data );
-                    Console.WriteLine( "Warning Sent" );
+                    if( text.ToLower() == Commands.EXIT ) // Client wants to exit gracefully
+                    {
+                        currUser.Socket.Shutdown( SocketShutdown.Both );
+                        currUser.Socket.Close();
+                        users.Remove( currUser );
+                        Console.WriteLine( "Client disconnected" );
+                        return;
+                    }
+                    else if( text.ToLower() == Commands.NICKNAME )
+                    {
+                        string nick = text.ToLower().Substring( 6 );
+                        currUser.SetNickName( nick );
+                        Console.WriteLine( String.Format( "new nickname set => {0}", currUser.Nickname ) );
+                        byte[] data = Encoding.ASCII.GetBytes(String.Format("new nickname set => {0}", currUser.Nickname ));
+                        currUser.Socket.Send( data );
+                    }
+                    else if( text.ToLower() == Commands.USER )
+                    {
+                        string res = String.Format("--JSON{0}", JsonConvert.SerializeObject(currUser.Nickname));
+                        byte[] data = Encoding.ASCII.GetBytes(res);
+                        currUser.Socket.Send( data );
+                    }
+                    else if( text.ToLower() == Commands.RANDOM )
+                    {
+                        Operations.Async.TestApi( currUser.Socket );
+                    }
+                    else if( text.ToLower() == Commands.HELP_COMMAND )
+                    {
+                        Operations.ToClient.CommandList( currUser.Socket );
+                    }
+                    else if( text.ToLower().StartsWith( Commands.HELP_COMMAND + " -" ) )
+                    {
+                        var len = (Commands.HELP_COMMAND+" -").Length;
+
+                        var caller = text.Substring(len);
+
+                        Operations.ToClient.CommandHelp( currUser.Socket, caller );
+                    }
+                    else
+                    {
+                        Console.WriteLine( "Text is an invalid request" );
+                        byte[] data = Encoding.ASCII.GetBytes("Invalid request");
+                        currUser.Socket.Send( data );
+                        Console.WriteLine( "Warning Sent" );
+                    }
+                }
+                else // normal messages
+                {
+                    Console.WriteLine( "Text is a normal message" );
+                    string sender = currUser.Nickname ?? ((IPEndPoint)currUser.Socket.RemoteEndPoint ).Address.ToString();
+                    byte[] data = Encoding.ASCII.GetBytes(String.Format("{0} said => {1}", sender, text));
+                    foreach( User user in users )
+                    {
+                        user.Socket.Send( data );
+                    }
+                    Console.WriteLine( "Message broadcasted" );
                 }
             }
-            else // normal messages
-            {
-                Console.WriteLine( "Text is a normal message" );
-                string sender = currUser.Nickname ?? ((IPEndPoint)currUser.Socket.RemoteEndPoint ).Address.ToString();
-                byte[] data = Encoding.ASCII.GetBytes(String.Format("{0} said => {1}", sender, text));
-                foreach( User user in users )
-                {
-                    user.Socket.Send( data );
-                }
-                Console.WriteLine( "Message broadcasted" );
-            }
+
+
 
             current.BeginReceive( buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current );
         }

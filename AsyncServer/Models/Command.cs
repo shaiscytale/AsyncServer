@@ -6,6 +6,7 @@ namespace AsyncServer.Models
 {
     public class Command
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Caller { get; set; }
         public string Description { get; set; }
@@ -13,8 +14,9 @@ namespace AsyncServer.Models
 
         public Command(){}
 
-        public Command(string name, string caller, string desc = "", int authLevel = 9)
+        public Command(int id, string name, string caller, string desc = "", int authLevel = 9)
         {
+            Id = id;
             Name = name;
             Caller = caller;
             Description = desc;
