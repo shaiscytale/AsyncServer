@@ -1,4 +1,5 @@
 ﻿using AsyncServer.Utils;
+using Datalink.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -10,7 +11,7 @@ namespace AsyncServer.Operations
     {
         internal static void CommandList( Socket target)
         {
-            var cmds = Commands.List();
+            var cmds = Command.List();
             string res = "Commands : ";
             foreach( var cmd in cmds )
             {
@@ -23,7 +24,7 @@ namespace AsyncServer.Operations
 
         internal static void CommandHelp( Socket target, string caller )
         {
-            var cmds = Commands.List();
+            var cmds = Command.List();
             var res = "";
             foreach( var cmd in cmds )
             {
